@@ -9,9 +9,11 @@ const allRoutes = require("./routes");
 app.use("/api", allRoutes);
 
 const embeddingRouter = require("./routes/embedding.routes");
-app.use("/api/embedding", embeddingRouter);
+app.use("/api", embeddingRouter);
 
 const openAiRouter = require("./routes/openai.routes");
-app.use("/api/openai", openAiRouter);
+app.use("/api", openAiRouter);
+
+require("./error-handling")(app);
 
 module.exports = app;
