@@ -38,4 +38,41 @@ router.post("/storeVector", async (req, res, next) => {
   }
 });
 
+router.post("/searchVectors", async (req, res) => {
+  const { text } = req.body;
+  if (!text) {
+    return res.status(400).json({ error: "Missing text" });
+  }
+
+  try {
+    // 1. Get embedding from OpenAI
+    const queryEmbedding = await createEmbedding(text);
+
+    // 2. Connect to DB
+    const db = await connectDB();
+
+    // 3. Run similarity search
+    const [rows] = await db.query(
+      `
+      SELECT 
+        text, 
+        DOT_PRODUCT(vector, JSON_ARRAY_PACK(?)) AS score
+      FROM myvectortable
+      ORDER BY score DESC
+      LIMIT 5
+      `,
+      [JSON.stringify(queryEmbedding)]
+    );
+
+    // 4. Return results
+    res.json({
+      query: text,
+      results: rows,
+    });
+  } catch (error) {
+    console.error("Error in searchVectors route:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 module.exports = router;
