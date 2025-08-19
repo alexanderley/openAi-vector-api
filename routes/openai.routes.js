@@ -9,8 +9,6 @@ router.post("/openai", async (req, res, next) => {
   const message = req.body.message;
   try {
     const vectorMatches = await findVectorMatches(message, 5);
-    // console.log("Vector matches found:", vectorMatches);
-    res.status(200).json({ matches: vectorMatches });
     const factualData = vectorMatches
       .map((match, i) => `Fact ${i + 1} (score: ${match.score}): ${match.text}`)
       .join("\n\n");
@@ -22,16 +20,12 @@ router.post("/openai", async (req, res, next) => {
     User's question:
     ${message}`;
 
-    // console.log("Prompt for OpenAI:", prompt);
-    // return;
-
     const response = await client.responses.create({
       model: "gpt-4.1-mini",
       input: prompt,
     });
 
     console.log("OpenAI response:", response.output_text);
-    console.log("OpenAI response text:", response.output_text);
     res.status(200).json({ message: response.output_text });
   } catch (error) {
     next(error);

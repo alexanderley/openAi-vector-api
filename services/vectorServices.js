@@ -10,7 +10,6 @@ async function findVectorMatches(text, limit) {
     const queryEmbedding = await createEmbedding(text);
     const db = await connectDB();
 
-    // Use limit parameter instead of hardcoded 5
     const [rows] = await db.query(
       `
       SELECT 
