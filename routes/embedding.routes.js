@@ -38,6 +38,7 @@ router.post("/storeVector", async (req, res, next) => {
   }
 });
 
+// #todo test this route
 router.post("/searchVectors", async (req, res) => {
   const { text } = req.body;
   if (!text) {
