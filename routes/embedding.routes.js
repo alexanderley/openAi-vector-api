@@ -4,6 +4,7 @@ const connectDB = require("../db/index");
 
 // creates a embedding in OpenAI
 const { createEmbedding } = require("../services/openaiServices");
+const { findVectorMatches } = require("../services/vectorServices");
 
 // Create a embeddin and store it
 router.post("/storeVector", async (req, res, next) => {
@@ -15,11 +16,10 @@ router.post("/storeVector", async (req, res, next) => {
   const vector = await createEmbedding(text);
   console.log("Embedding response:", vector);
 
-  // This is the format the vector database need
   if (!text || !vector) {
     return res.status(400).json({ error: "Missing text or vector" });
   }
-  // res.status(200).json({ message: "Vector created successfully", vector });
+
   try {
     // return;
     const db = await connectDB();
@@ -46,30 +46,8 @@ router.post("/searchVectors", async (req, res) => {
   }
 
   try {
-    // 1. Get embedding from OpenAI
-    const queryEmbedding = await createEmbedding(text);
-
-    // 2. Connect to DB
-    const db = await connectDB();
-
-    // 3. Run similarity search
-    const [rows] = await db.query(
-      `
-      SELECT 
-        text, 
-        DOT_PRODUCT(vector, JSON_ARRAY_PACK(?)) AS score
-      FROM myvectortable
-      ORDER BY score DESC
-      LIMIT 5
-      `,
-      [JSON.stringify(queryEmbedding)]
-    );
-
-    // 4. Return results
-    res.json({
-      query: text,
-      results: rows,
-    });
+    const vectorMatches = await findVectorMatches(text);
+    res.status(200).json({ query: text, results: vectorMatches });
   } catch (error) {
     console.error("Error in searchVectors route:", error);
     res.status(500).json({ error: "Internal Server Error" });
